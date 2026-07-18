@@ -355,3 +355,10 @@ nav {
 .browse-btn:active {
   transform: scale(0.97);
 }
+#search-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+}
