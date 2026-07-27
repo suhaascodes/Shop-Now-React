@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { add } from '../store/wishlistSlice';
 import { fetchProductById } from '../js/app';
 
 function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
+  const dispatch = useDispatch();
+  const wishlist = useSelector((state) => state.wishlist || []);
 
   useEffect(() => {
     async function loadProduct() {
@@ -20,13 +24,12 @@ function ProductDetailPage() {
     return null;
   }
 
+
   const handleWishlist = () => {
-    const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
     const exists = wishlist.some((item) => item.id === product.id);
 
     if (!exists) {
-      wishlist.push(product);
-      localStorage.setItem('wishlist', JSON.stringify(wishlist));
+      dispatch(add(product));
       alert('Added to Wishlist ❤️');
     } else {
       alert('Already in Wishlist');

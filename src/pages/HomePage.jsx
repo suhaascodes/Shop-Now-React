@@ -1,39 +1,40 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts, fetchProductsByCategory } from '../js/app';
+import {
+  fetchProductsStart,
+  fetchProductsSuccess,
+  fetchProductsFailed,
+} from '../store/productsSlice';
 
 const productsPerPage = 10;
 
 function HomePage({ query, selectedCategory }) {
   const navigate = useNavigate();
-  const [allProducts, setAllProducts] = useState([]);
-  const [currentProducts, setCurrentProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const products = useSelector((state) => state.products.items || []);
+  const loading = useSelector((state) => state.products.loading);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     async function loadProducts() {
+      dispatch(fetchProductsStart());
       try {
-        setLoading(true);
-        let products;
-
+        let data;
         if (selectedCategory === 'all') {
-          products = await fetchProducts();
+          data = await fetchProducts();
         } else {
-          products = await fetchProductsByCategory(selectedCategory);
+          data = await fetchProductsByCategory(selectedCategory);
         }
-
-        setAllProducts(products);
-        setCurrentProducts(products);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
+        dispatch(fetchProductsSuccess(data));
+      } catch (err) {
+        dispatch(fetchProductsFailed(err.toString()));
       }
     }
 
     loadProducts();
-  }, [selectedCategory]);
+  }, [selectedCategory, dispatch]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -41,10 +42,8 @@ function HomePage({ query, selectedCategory }) {
 
   const filteredProducts = useMemo(() => {
     const searchTerm = query.toLowerCase();
-    return currentProducts.filter((product) =>
-      product.title.toLowerCase().includes(searchTerm)
-    );
-  }, [currentProducts, query]);
+    return products.filter((product) => product.title.toLowerCase().includes(searchTerm));
+  }, [products, query]);
 
   const paginatedProducts = useMemo(() => {
     const startIndex = (currentPage - 1) * productsPerPage;

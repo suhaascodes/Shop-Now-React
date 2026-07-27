@@ -1,33 +1,43 @@
 import { useEffect, useState } from 'react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { setQuery, setSelectedCategory } from './store/uiSlice';
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import WishlistPage from './pages/WishlistPage';
 import ProfilePage from './pages/ProfilePage';
 import { fetchCategories } from './js/app';
+import {
+  fetchCategoriesStart,
+  fetchCategoriesSuccess,
+  fetchCategoriesFailed,
+} from './store/categoriesSlice';
 
 function App() {
   const location = useLocation();
-  const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [categories, setCategories] = useState([]);
+  const query = useSelector((state) => state.ui.query);
+  const selectedCategory = useSelector((state) => state.ui.selectedCategory);
+  const dispatch = useDispatch();
+  const categories = useSelector((state) => state.categories.items);
+  const categoriesLoading = useSelector((state) => state.categories.loading);
 
   useEffect(() => {
     async function loadCategories() {
+      dispatch(fetchCategoriesStart());
       try {
         const data = await fetchCategories();
-        setCategories(data);
+        dispatch(fetchCategoriesSuccess(data));
       } catch (error) {
-        console.error(error);
+        dispatch(fetchCategoriesFailed(error.toString()));
       }
     }
 
     loadCategories();
-  }, []);
+  }, [dispatch]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    setQuery(event.target.search.value.trim());
+    dispatch(setQuery(event.target.search.value.trim()));
   };
 
   return (
@@ -53,7 +63,7 @@ function App() {
                 name="category"
                 id="category"
                 value={selectedCategory}
-                onChange={(event) => setSelectedCategory(event.target.value)}
+                onChange={(event) => dispatch(setSelectedCategory(event.target.value))}
               >
                 <option value="all">All Categories</option>
                 {categories.map((category) => (

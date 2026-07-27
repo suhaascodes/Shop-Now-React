@@ -1,19 +1,14 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { remove } from '../store/wishlistSlice';
 
 function WishlistPage() {
   const navigate = useNavigate();
-  const [wishlist, setWishlist] = useState([]);
-
-  useEffect(() => {
-    const savedWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-    setWishlist(savedWishlist);
-  }, []);
+  const wishlist = useSelector((state) => state.wishlist || []);
+  const dispatch = useDispatch();
 
   const removeFromWishlist = (id) => {
-    const updatedWishlist = wishlist.filter((product) => product.id !== id);
-    localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
-    setWishlist(updatedWishlist);
+    dispatch(remove(id));
   };
 
   return (
